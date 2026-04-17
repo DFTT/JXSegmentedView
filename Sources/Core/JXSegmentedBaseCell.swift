@@ -13,6 +13,9 @@ public typealias JXSegmentedCellSelectedAnimationClosure = (CGFloat)->()
 open class JXSegmentedBaseCell: UICollectionViewCell, JXSegmentedViewRTLCompatible {
     open var itemModel: JXSegmentedBaseItemModel?
     open var animator: JXSegmentedAnimator?
+    
+    public var itemCenterOffsetY: CGFloat = 0
+    
     private var selectedAnimationClosureArray = [JXSegmentedCellSelectedAnimationClosure]()
 
     deinit {

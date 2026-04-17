@@ -27,6 +27,9 @@ open class JXSegmentedIndicatorImageView: JXSegmentedIndicatorBaseView {
         super.refreshIndicatorState(model: model)
 
         backgroundColor = nil
+        layer.cornerRadius = getIndicatorCornerRadius(itemFrame: model.currentSelectedItemFrame)
+        //注释 改代码解决 图片显示bug
+        layer.masksToBounds = indicatorCornerRadius != JXSegmentedViewAutomaticDimension
 
         let width = getIndicatorWidth(itemFrame: model.currentSelectedItemFrame, itemContentWidth: model.currentItemContentWidth)
         let height = getIndicatorHeight(itemFrame: model.currentSelectedItemFrame)

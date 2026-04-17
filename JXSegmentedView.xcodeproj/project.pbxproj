@@ -143,17 +143,17 @@
 		1908EFCB226F0B3700E03FD5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				1908EFCC226F0B3700E03FD5 /* TitleOrImage */,
+				1908EFFB226F0B3800E03FD5 /* AttributeTitle */,
+				1908EFF7226F0B3700E03FD5 /* Common */,
 				1908EFD0226F0B3700E03FD5 /* Core */,
-				1908EFD6226F0B3700E03FD5 /* Indicator */,
 				1908EFE3226F0B3700E03FD5 /* Dot */,
-				1908EFE7226F0B3700E03FD5 /* TitleImage */,
+				1908EFD6226F0B3700E03FD5 /* Indicator */,
+				1908EFF3226F0B3700E03FD5 /* Number */,
+				B2D75F392BB1B35E00A26560 /* PrivacyInfo.xcprivacy */,
 				1908EFEB226F0B3700E03FD5 /* Title */,
 				1908EFEF226F0B3700E03FD5 /* TitleGradient */,
-				1908EFF3226F0B3700E03FD5 /* Number */,
-				1908EFF7226F0B3700E03FD5 /* Common */,
-				1908EFFB226F0B3800E03FD5 /* AttributeTitle */,
-				B2D75F392BB1B35E00A26560 /* PrivacyInfo.xcprivacy */,
+				1908EFE7226F0B3700E03FD5 /* TitleImage */,
+				1908EFCC226F0B3700E03FD5 /* TitleOrImage */,
 			);
 			path = Sources;
 			sourceTree = "<group>";

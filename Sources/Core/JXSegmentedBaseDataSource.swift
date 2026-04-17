@@ -19,7 +19,7 @@ open class JXSegmentedBaseDataSource: JXSegmentedViewDataSource {
     /// item之前的间距
     open var itemSpacing: CGFloat = 20
     /// 当collectionView.contentSize.width小于JXSegmentedView的宽度时，是否将itemSpacing均分。
-    open var isItemSpacingAverageEnabled: Bool = true
+    open var isItemSpacingAverageEnabled: Bool = false
     /// item左右滚动过渡时，是否允许渐变。比如JXSegmentedTitleDataSource的titleZoom、titleNormalColor、titleStrokeWidth等渐变。
     open var isItemTransitionEnabled: Bool = true
     /// 选中的时候，是否需要动画过渡。自定义的cell需要自己处理动画过渡逻辑，动画处理逻辑参考`JXSegmentedTitleCell`
@@ -32,6 +32,9 @@ open class JXSegmentedBaseDataSource: JXSegmentedViewDataSource {
     open var isItemWidthZoomAnimable: Bool = true
     /// item宽度选中时的scale
     open var itemWidthSelectedZoomScale: CGFloat = 1.5
+    
+    // item 的 titleLabel在Y轴上的偏移量 （2.0.3版本做刻度尺的时候添加的）
+    open var itemCenterOffsetY: CGFloat = 0
 
     @available(*, deprecated, renamed: "itemWidth")
     open var itemContentWidth: CGFloat = JXSegmentedViewAutomaticDimension {

@@ -37,6 +37,14 @@ open class JXSegmentedTitleDataSource: JXSegmentedBaseDataSource {
     open var titleSelectedStrokeWidth: CGFloat = -2
     /// title是否使用遮罩过渡
     open var isTitleMaskEnabled: Bool = false
+    
+    open var backgroundColor: UIColor?
+    open var selectedBackgroundColor: UIColor?
+    open var contentViewCornerRadius: CGFloat = 0
+    open var contentViewInset = UIEdgeInsets.zero
+    open var titleLabelAlpha: CGFloat = 1.0
+    open var contntViewBorderWidth: CGFloat = 0
+    open var contntViewBorderColor: UIColor?
 
     open override func preferredItemCount() -> Int {
         return titles.count
@@ -72,6 +80,15 @@ open class JXSegmentedTitleDataSource: JXSegmentedBaseDataSource {
         myItemModel.titleSelectedZoomScale = titleSelectedZoomScale
         myItemModel.titleSelectedStrokeWidth = titleSelectedStrokeWidth
         myItemModel.titleNormalStrokeWidth = 0
+        
+        myItemModel.backgroundColor = backgroundColor
+        myItemModel.selectedBackgroundColor = selectedBackgroundColor
+        myItemModel.contentViewCornerRadius = contentViewCornerRadius
+        myItemModel.contentViewInset = contentViewInset
+        myItemModel.titleLabelAlpha = titleLabelAlpha
+        myItemModel.contntViewBorderWidth = contntViewBorderWidth
+        myItemModel.contntViewBorderColor = contntViewBorderColor
+        
         if index == selectedIndex {
             myItemModel.titleCurrentColor = innerTitleSelectedColor(at: index)
             myItemModel.titleCurrentZoomScale = titleSelectedZoomScale
@@ -110,6 +127,7 @@ open class JXSegmentedTitleDataSource: JXSegmentedBaseDataSource {
 
     open override func segmentedView(_ segmentedView: JXSegmentedView, cellForItemAt index: Int) -> JXSegmentedBaseCell {
         let cell = segmentedView.dequeueReusableCell(withReuseIdentifier: "cell", at: index)
+        cell.itemCenterOffsetY = itemCenterOffsetY
         return cell
     }
 

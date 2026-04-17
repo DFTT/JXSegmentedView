@@ -135,6 +135,9 @@ public protocol JXSegmentedViewDelegate: AnyObject {
     ///   - segmentedView: JXSegmentedView
     ///   - index: 目标index
     func segmentedView(_ segmentedView: JXSegmentedView, canClickItemAt index: Int) -> Bool
+    
+    // reload结束的回调
+    func segmentedView(_ segmentedView: JXSegmentedView, reloadCompletion completion: Bool)
 }
 
 /// 提供JXSegmentedViewDelegate的默认实现，这样对于遵从JXSegmentedViewDelegate的类来说，所有代理方法都是可选实现的。
@@ -144,6 +147,7 @@ public extension JXSegmentedViewDelegate {
     func segmentedView(_ segmentedView: JXSegmentedView, didScrollSelectedItemAt index: Int) { }
     func segmentedView(_ segmentedView: JXSegmentedView, scrollingFrom leftIndex: Int, to rightIndex: Int, percent: CGFloat) { }
     func segmentedView(_ segmentedView: JXSegmentedView, canClickItemAt index: Int) -> Bool { return true }
+    func segmentedView(_ segmentedView: JXSegmentedView, reloadCompletion completion: Bool) { }
 }
 
 /// 内部会自己找到父UIViewController，然后将其automaticallyAdjustsScrollViewInsets设置为false，这一点请知晓。
@@ -394,6 +398,10 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         }
         collectionView.reloadData()
         collectionView.collectionViewLayout.invalidateLayout()
+        
+        DispatchQueue.main.async {
+            self.delegate?.segmentedView(self, reloadCompletion: true)
+        }
     }
 
     open func reloadItem(at index: Int) {

@@ -13,6 +13,7 @@ open class JXSegmentedTitleCell: JXSegmentedBaseCell {
     public let maskTitleLabel = UILabel()
     public let titleMaskLayer = CALayer()
     public let maskTitleMaskLayer = CALayer()
+    public let contentBackgroundView = UIView()
 
     open override func commonInit() {
         super.commonInit()
@@ -37,10 +38,16 @@ open class JXSegmentedTitleCell: JXSegmentedBaseCell {
         let labelSize = titleLabel.sizeThatFits(self.contentView.bounds.size)
         let labelBounds = CGRect(x: 0, y: 0, width: labelSize.width, height: labelSize.height)
         titleLabel.bounds = labelBounds
-        titleLabel.center = contentView.center
+        titleLabel.center = CGPointMake(contentView.center.x, contentView.center.y + itemCenterOffsetY)
+        
+        if let myItemModel = itemModel as? JXSegmentedTitleItemModel {
+            contentBackgroundView.frame = CGRect(x: myItemModel.contentViewInset.left, y: myItemModel.contentViewInset.top, width: frame.size.width - myItemModel.contentViewInset.left - myItemModel.contentViewInset.right, height: frame.size.height - myItemModel.contentViewInset.top - myItemModel.contentViewInset.bottom)
+            contentBackgroundView.layer.borderColor = myItemModel.contntViewBorderColor?.cgColor
+            contentBackgroundView.layer.borderWidth = myItemModel.contntViewBorderWidth
+        }
 
         maskTitleLabel.bounds = labelBounds
-        maskTitleLabel.center = contentView.center
+        maskTitleLabel.center = CGPointMake(contentView.center.x, contentView.center.y + itemCenterOffsetY)
     }
 
     open override func reloadData(itemModel: JXSegmentedBaseItemModel, selectedType: JXSegmentedViewItemSelectedType) {
@@ -49,13 +56,29 @@ open class JXSegmentedTitleCell: JXSegmentedBaseCell {
         guard let myItemModel = itemModel as? JXSegmentedTitleItemModel else {
             return
         }
+        
+        contentBackgroundView.backgroundColor = selectedType == .unknown ? myItemModel.backgroundColor : myItemModel.selectedBackgroundColor
+        contentBackgroundView.layer.cornerRadius = myItemModel.contentViewCornerRadius
+        contentBackgroundView.layer.masksToBounds = true
+        contentView.addSubview(contentBackgroundView)
+        contentView.sendSubviewToBack(contentBackgroundView)
+        for cell in superview?.subviews ?? [] {
+            guard let titleCell = cell as? JXSegmentedTitleCell else { continue }
+            if titleCell == self { continue }
+            titleCell.contentBackgroundView.backgroundColor = (titleCell.itemModel?.isSelected ?? false) ? myItemModel.selectedBackgroundColor : myItemModel.backgroundColor
+        }
+        contentBackgroundView.backgroundColor = myItemModel.isSelected ? myItemModel.selectedBackgroundColor : myItemModel.backgroundColor
+
+        titleLabel.alpha = myItemModel.titleLabelAlpha
 
         titleLabel.numberOfLines = myItemModel.titleNumberOfLines
         maskTitleLabel.numberOfLines = myItemModel.titleNumberOfLines
 
         if myItemModel.isTitleZoomEnabled {
             //先把font设置为缩放的最大值，再缩小到最小值，最后根据当前的titleCurrentZoomScale值，进行缩放更新。这样就能避免transform从小到大时字体模糊
-            let maxScaleFont = UIFont(descriptor: myItemModel.titleNormalFont.fontDescriptor, size: myItemModel.titleNormalFont.pointSize*CGFloat(myItemModel.titleSelectedZoomScale))
+//            let maxScaleFont = UIFont(descriptor: myItemModel.titleNormalFont.fontDescriptor, size: myItemModel.titleNormalFont.pointSize*CGFloat(myItemModel.titleSelectedZoomScale))
+            let font = roundf(Float(myItemModel.titleNormalFont.pointSize*CGFloat(myItemModel.titleSelectedZoomScale)))
+            let maxScaleFont = UIFont(descriptor: myItemModel.titleNormalFont.fontDescriptor, size: CGFloat(font))
             let baseScale = myItemModel.titleNormalFont.lineHeight/maxScaleFont.lineHeight
 
             if myItemModel.isSelectedAnimable && canStartSelectedAnimation(itemModel: itemModel, selectedType: selectedType) {

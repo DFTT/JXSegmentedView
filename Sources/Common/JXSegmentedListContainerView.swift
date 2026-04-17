@@ -23,6 +23,7 @@ public protocol JXSegmentedListContainerViewListDelegate {
     ///
     /// - Returns: 返回列表视图
     func listView() -> UIView
+    @objc optional func listViewOffsetY() -> CGFloat
     @objc optional func listWillAppear()
     @objc optional func listDidAppear()
     @objc optional func listWillDisappear()
@@ -189,7 +190,7 @@ open class JXSegmentedListContainerView: UIView, JXSegmentedViewListContainer, J
                 scrollView.frame = bounds
                 scrollView.contentSize = CGSize(width: scrollView.bounds.size.width*CGFloat(count), height: scrollView.bounds.size.height)
                 for (index, list) in validListDict {
-                    list.listView().frame = CGRect(x: CGFloat(index)*scrollView.bounds.size.width, y: 0, width: scrollView.bounds.size.width, height: scrollView.bounds.size.height)
+                    list.listView().frame = CGRect(x: CGFloat(index)*scrollView.bounds.size.width, y: list.listViewOffsetY?() ?? 0, width: scrollView.bounds.size.width, height: scrollView.bounds.size.height - (list.listViewOffsetY?() ?? 0))
                 }
                 scrollView.contentOffset = CGPoint(x: CGFloat(currentIndex)*scrollView.bounds.size.width, y: 0)
             }else {
@@ -272,7 +273,7 @@ open class JXSegmentedListContainerView: UIView, JXSegmentedViewListContainer, J
         }
         validListDict[index] = list
         if type == .scrollView {
-            list.listView().frame = CGRect(x: CGFloat(index)*scrollView.bounds.size.width, y: 0, width: scrollView.bounds.size.width, height: scrollView.bounds.size.height)
+            list.listView().frame = CGRect(x: CGFloat(index)*scrollView.bounds.size.width, y: list.listViewOffsetY?() ?? 0, width: scrollView.bounds.size.width, height: scrollView.bounds.size.height - (list.listViewOffsetY?() ?? 0))
             scrollView.addSubview(list.listView())
             
             if segmentedViewShouldRTLLayout() {
@@ -312,7 +313,7 @@ open class JXSegmentedListContainerView: UIView, JXSegmentedViewListContainer, J
             validListDict[index] = list
             if type == .scrollView {
                 if list.listView().superview == nil {
-                    list.listView().frame = CGRect(x: CGFloat(index)*scrollView.bounds.size.width, y: 0, width: scrollView.bounds.size.width, height: scrollView.bounds.size.height)
+                    list.listView().frame = CGRect(x: CGFloat(index)*scrollView.bounds.size.width, y: list.listViewOffsetY?() ?? 0, width: scrollView.bounds.size.width, height: scrollView.bounds.size.height - (list.listViewOffsetY?() ?? 0))
                     scrollView.addSubview(list.listView())
                     
                     if segmentedViewShouldRTLLayout() {
