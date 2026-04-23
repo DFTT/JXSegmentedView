@@ -14,7 +14,7 @@ open class JXSegmentedTitleDataSource: JXSegmentedBaseDataSource {
     /// 根据index配置cell的不同属性
     open weak var configuration: JXSegmentedTitleDynamicConfiguration?
     /// 如果将JXSegmentedView嵌套进UITableView的cell，每次重用的时候，JXSegmentedView进行reloadData时，会重新计算所有的title宽度。所以该应用场景，需要UITableView的cellModel缓存titles的文字宽度，再通过该闭包方法返回给JXSegmentedView。
-    open var widthForTitleClosure: ((String)->(CGFloat))?
+    open var widthForTitleClosure: ((String, CGFloat)->(CGFloat))?
     /// label的numberOfLines
     open var titleNumberOfLines: Int = 1
     /// title普通状态的textColor
@@ -101,10 +101,10 @@ open class JXSegmentedTitleDataSource: JXSegmentedBaseDataSource {
     }
 
     open func widthForTitle(_ title: String, _ index: Int) -> CGFloat {
+        let textWidth = NSString(string: title).boundingRect(with: CGSize(width: CGFloat.infinity, height: CGFloat.infinity), options: [.usesFontLeading, .usesLineFragmentOrigin], attributes: [NSAttributedString.Key.font : titleNormalFont], context: nil).size.width
         if widthForTitleClosure != nil {
-            return widthForTitleClosure!(title)
+            return widthForTitleClosure!(title, textWidth)
         }else {
-            let textWidth = NSString(string: title).boundingRect(with: CGSize(width: CGFloat.infinity, height: CGFloat.infinity), options: [.usesFontLeading, .usesLineFragmentOrigin], attributes: [NSAttributedString.Key.font : innerTitleNormalFont(at: index)], context: nil).size.width
             return CGFloat(ceilf(Float(textWidth)))
         }
     }
@@ -131,7 +131,7 @@ open class JXSegmentedTitleDataSource: JXSegmentedBaseDataSource {
         return cell
     }
 
-    public override func segmentedView(_ segmentedView: JXSegmentedView, widthForItemContentAt index: Int) -> CGFloat {
+    open override func segmentedView(_ segmentedView: JXSegmentedView, widthForItemContentAt index: Int) -> CGFloat {
         let model = dataSource[index] as! JXSegmentedTitleItemModel
         if isTitleZoomEnabled {
             return model.textWidth*model.titleCurrentZoomScale

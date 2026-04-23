@@ -36,5 +36,5 @@ open class JXSegmentedCollectionView: UICollectionView {
     }
 
     // layout结束之后外部再去调整UI
-    var layoutSubViewEnd: (() -> Void)?
+    open var layoutSubViewEnd: (() -> Void)?
 }

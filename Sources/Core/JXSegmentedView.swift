@@ -615,7 +615,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         delegate?.segmentedView(self, didSelectedItemAt: index)
     }
 
-    private func getItemFrameAt(index: Int) -> CGRect {
+    public func getItemFrameAt(index: Int) -> CGRect {
         guard index < itemDataSource.count else {
             return CGRect.zero
         }
