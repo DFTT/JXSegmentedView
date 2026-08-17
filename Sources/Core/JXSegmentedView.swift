@@ -128,26 +128,25 @@ public protocol JXSegmentedViewDelegate: AnyObject {
     ///   - percent: 从左往右计算的百分比
     func segmentedView(_ segmentedView: JXSegmentedView, scrollingFrom leftIndex: Int, to rightIndex: Int, percent: CGFloat)
 
-
     /// 是否允许点击选中目标index的item
     ///
     /// - Parameters:
     ///   - segmentedView: JXSegmentedView
     ///   - index: 目标index
     func segmentedView(_ segmentedView: JXSegmentedView, canClickItemAt index: Int) -> Bool
-    
+
     // reload结束的回调
     func segmentedView(_ segmentedView: JXSegmentedView, reloadCompletion completion: Bool)
 }
 
 /// 提供JXSegmentedViewDelegate的默认实现，这样对于遵从JXSegmentedViewDelegate的类来说，所有代理方法都是可选实现的。
 public extension JXSegmentedViewDelegate {
-    func segmentedView(_ segmentedView: JXSegmentedView, didSelectedItemAt index: Int) { }
-    func segmentedView(_ segmentedView: JXSegmentedView, didClickSelectedItemAt index: Int) { }
-    func segmentedView(_ segmentedView: JXSegmentedView, didScrollSelectedItemAt index: Int) { }
-    func segmentedView(_ segmentedView: JXSegmentedView, scrollingFrom leftIndex: Int, to rightIndex: Int, percent: CGFloat) { }
+    func segmentedView(_ segmentedView: JXSegmentedView, didSelectedItemAt index: Int) {}
+    func segmentedView(_ segmentedView: JXSegmentedView, didClickSelectedItemAt index: Int) {}
+    func segmentedView(_ segmentedView: JXSegmentedView, didScrollSelectedItemAt index: Int) {}
+    func segmentedView(_ segmentedView: JXSegmentedView, scrollingFrom leftIndex: Int, to rightIndex: Int, percent: CGFloat) {}
     func segmentedView(_ segmentedView: JXSegmentedView, canClickItemAt index: Int) -> Bool { return true }
-    func segmentedView(_ segmentedView: JXSegmentedView, reloadCompletion completion: Bool) { }
+    func segmentedView(_ segmentedView: JXSegmentedView, reloadCompletion completion: Bool) {}
 }
 
 /// 内部会自己找到父UIViewController，然后将其automaticallyAdjustsScrollViewInsets设置为false，这一点请知晓。
@@ -158,6 +157,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
             dataSource?.reloadData(selectedIndex: selectedIndex)
         }
     }
+
     open weak var delegate: JXSegmentedViewDelegate?
     open private(set) var collectionView: JXSegmentedCollectionView!
     open var contentScrollView: UIScrollView? {
@@ -169,18 +169,21 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
             contentScrollView?.addObserver(self, forKeyPath: "contentOffset", options: .new, context: nil)
         }
     }
-    public var listContainer: JXSegmentedViewListContainer? = nil {
+
+    public var listContainer: JXSegmentedViewListContainer? {
         didSet {
             listContainer?.defaultSelectedIndex = defaultSelectedIndex
             contentScrollView = listContainer?.contentScrollView()
         }
     }
+
     /// indicators的元素必须是遵从JXSegmentedIndicatorProtocol协议的UIView及其子类
     open var indicators = [JXSegmentedIndicatorProtocol]() {
         didSet {
             collectionView.indicators = indicators
         }
     }
+
     /// 初始化或者reloadData之前设置，用于指定默认的index
     open var defaultSelectedIndex: Int = 0 {
         didSet {
@@ -190,6 +193,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
             }
         }
     }
+
     open private(set) var selectedIndex: Int = 0
     /// 整体内容的左边距，默认JXSegmentedViewAutomaticDimension（等于itemSpacing）
     open var contentEdgeInsetLeft: CGFloat = JXSegmentedViewAutomaticDimension
@@ -200,7 +204,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
 
     private var itemDataSource = [JXSegmentedBaseItemModel]()
     private var innerItemSpacing: CGFloat = 0
-    private var lastContentOffset: CGPoint = CGPoint.zero
+    private var lastContentOffset: CGPoint = .zero
     /// 正在滚动中的目标index。用于处理正在滚动列表的时候，立即点击item，会导致界面显示异常。
     private var scrollingTargetIndex: Int = -1
     private var isFirstLayoutSubviews = true
@@ -209,13 +213,13 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         contentScrollView?.removeObserver(self, forKeyPath: "contentOffset")
     }
 
-    public override init(frame: CGRect) {
+    override public init(frame: CGRect) {
         super.init(frame: frame)
 
         commonInit()
     }
 
-    required public init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
 
         commonInit()
@@ -245,12 +249,12 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         addSubview(collectionView)
     }
 
-    open override func willMove(toSuperview newSuperview: UIView?) {
+    override open func willMove(toSuperview newSuperview: UIView?) {
         super.willMove(toSuperview: newSuperview)
 
         var nextResponder: UIResponder? = newSuperview
         while nextResponder != nil {
-            if let parentVC = nextResponder as? UIViewController  {
+            if let parentVC = nextResponder as? UIViewController {
                 parentVC.automaticallyAdjustsScrollViewInsets = false
                 break
             }
@@ -258,17 +262,17 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         }
     }
 
-    open override func layoutSubviews() {
+    override open func layoutSubviews() {
         super.layoutSubviews()
 
-        //部分使用者为了适配不同的手机屏幕尺寸，JXSegmentedView的宽高比要求保持一样。所以它的高度就会因为不同宽度的屏幕而不一样。计算出来的高度，有时候会是位数很长的浮点数，如果把这个高度设置给UICollectionView就会触发内部的一个错误。所以，为了规避这个问题，在这里对高度统一向下取整。
-        //如果向下取整导致了你的页面异常，请自己重新设置JXSegmentedView的高度，保证为整数即可。
+        // 部分使用者为了适配不同的手机屏幕尺寸，JXSegmentedView的宽高比要求保持一样。所以它的高度就会因为不同宽度的屏幕而不一样。计算出来的高度，有时候会是位数很长的浮点数，如果把这个高度设置给UICollectionView就会触发内部的一个错误。所以，为了规避这个问题，在这里对高度统一向下取整。
+        // 如果向下取整导致了你的页面异常，请自己重新设置JXSegmentedView的高度，保证为整数即可。
         let targetFrame = CGRect(x: 0, y: 0, width: bounds.size.width, height: floor(bounds.size.height))
         if isFirstLayoutSubviews {
             isFirstLayoutSubviews = false
             collectionView.frame = targetFrame
             reloadDataWithoutListContainer()
-        }else {
+        } else {
             if collectionView.frame != targetFrame {
                 collectionView.frame = targetFrame
                 collectionView.collectionViewLayout.invalidateLayout()
@@ -277,7 +281,8 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         }
     }
 
-    //MARK: - Public
+    // MARK: - Public
+
     public final func dequeueReusableCell(withReuseIdentifier identifier: String, at index: Int) -> JXSegmentedBaseCell {
         let indexPath = IndexPath(item: index, section: 0)
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath)
@@ -315,26 +320,26 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
             totalItemWidth += itemModel.itemWidth
             if index == itemDataSource.count - 1 {
                 totalContentWidth += itemModel.itemWidth + getContentEdgeInsetRight()
-            }else {
+            } else {
                 totalContentWidth += itemModel.itemWidth + innerItemSpacing
             }
         }
 
-        if dataSource?.isItemSpacingAverageEnabled == true && totalContentWidth < bounds.size.width {
+        if dataSource?.isItemSpacingAverageEnabled == true, totalContentWidth < bounds.size.width {
             var itemSpacingCount = itemDataSource.count - 1
             var totalItemSpacingWidth = bounds.size.width - totalItemWidth
             if contentEdgeInsetLeft == JXSegmentedViewAutomaticDimension {
                 itemSpacingCount += 1
-            }else {
+            } else {
                 totalItemSpacingWidth -= contentEdgeInsetLeft
             }
             if contentEdgeInsetRight == JXSegmentedViewAutomaticDimension {
                 itemSpacingCount += 1
-            }else {
+            } else {
                 totalItemSpacingWidth -= contentEdgeInsetRight
             }
             if itemSpacingCount > 0 {
-                innerItemSpacing = totalItemSpacingWidth / CGFloat(itemSpacingCount)
+                innerItemSpacing = totalItemSpacingWidth/CGFloat(itemSpacingCount)
             }
         }
 
@@ -344,12 +349,12 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         for (index, itemModel) in itemDataSource.enumerated() {
             if index < selectedIndex {
                 selectedItemFrameX += itemModel.itemWidth + innerItemSpacing
-            }else if index == selectedIndex {
+            } else if index == selectedIndex {
                 selectedItemWidth = itemModel.itemWidth
             }
             if index == itemDataSource.count - 1 {
                 totalContentWidth += itemModel.itemWidth + getContentEdgeInsetRight()
-            }else {
+            } else {
                 totalContentWidth += itemModel.itemWidth + innerItemSpacing
             }
         }
@@ -360,26 +365,27 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         collectionView.setContentOffset(CGPoint(x: max(min(maxX, targetX), minX), y: 0), animated: false)
 
         if contentScrollView != nil {
-            if contentScrollView!.frame.equalTo(CGRect.zero) &&
-                contentScrollView!.superview != nil {
-                //某些情况系统会出现JXSegmentedView先布局，contentScrollView后布局。就会导致下面指定defaultSelectedIndex失效，所以发现contentScrollView的frame为zero时，强行触发其父视图链里面已经有frame的一个父视图的layoutSubviews方法。
-                //比如JXSegmentedListContainerView会将contentScrollView包裹起来使用，该情况需要JXSegmentedListContainerView.superView触发布局更新
+            if contentScrollView!.frame.equalTo(CGRect.zero),
+               contentScrollView!.superview != nil
+            {
+                // 某些情况系统会出现JXSegmentedView先布局，contentScrollView后布局。就会导致下面指定defaultSelectedIndex失效，所以发现contentScrollView的frame为zero时，强行触发其父视图链里面已经有frame的一个父视图的layoutSubviews方法。
+                // 比如JXSegmentedListContainerView会将contentScrollView包裹起来使用，该情况需要JXSegmentedListContainerView.superView触发布局更新
                 var parentView = contentScrollView?.superview
-                while parentView != nil && parentView?.frame.equalTo(CGRect.zero) == true {
+                while parentView != nil, parentView?.frame.equalTo(CGRect.zero) == true {
                     parentView = parentView?.superview
                 }
                 parentView?.setNeedsLayout()
                 parentView?.layoutIfNeeded()
             }
 
-            contentScrollView!.setContentOffset(CGPoint(x: CGFloat(selectedIndex) * contentScrollView!.bounds.size.width
-                , y: 0), animated: false)
+            contentScrollView!.setContentOffset(CGPoint(x: CGFloat(selectedIndex) * contentScrollView!.bounds.size.width,
+                                                        y: 0), animated: false)
         }
 
         for indicator in indicators {
             if itemDataSource.isEmpty {
                 indicator.isHidden = true
-            }else {
+            } else {
                 indicator.isHidden = false
                 let selectedItemFrame = getItemFrameAt(index: selectedIndex)
                 let indicatorParams = JXSegmentedIndicatorSelectedParams(currentSelectedIndex: selectedIndex,
@@ -398,14 +404,14 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         }
         collectionView.reloadData()
         collectionView.collectionViewLayout.invalidateLayout()
-        
+
         DispatchQueue.main.async {
             self.delegate?.segmentedView(self, reloadCompletion: true)
         }
     }
 
     open func reloadItem(at index: Int) {
-        guard index >= 0 && index < itemDataSource.count else {
+        guard index >= 0, index < itemDataSource.count else {
             return
         }
 
@@ -413,7 +419,6 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         let cell = collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? JXSegmentedBaseCell
         cell?.reloadData(itemModel: itemDataSource[index], selectedType: .unknown)
     }
-
 
     /// 代码选中指定index
     /// 如果要同时触发列表容器对应index的列表加载，请再调用`listContainerView.didClickSelectedItem(at: index)`方法
@@ -423,28 +428,29 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         selectItemAt(index: index, selectedType: .code)
     }
 
-    //MARK: - KVO
-    open override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+    // MARK: - KVO
+
+    override open func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "contentOffset" {
             let contentOffset = change?[NSKeyValueChangeKey.newKey] as! CGPoint
             if contentScrollView?.isTracking == true || contentScrollView?.isDecelerating == true {
-                //用户滚动引起的contentOffset变化，才处理。
+                // 用户滚动引起的contentOffset变化，才处理。
                 if contentScrollView?.bounds.size.width == 0 {
                     // 如果contentScrollView Frame为零，直接忽略
                     return
                 }
                 var progress = contentOffset.x/contentScrollView!.bounds.size.width
                 if Int(progress) > itemDataSource.count - 1 || progress < 0 {
-                    //超过了边界，不需要处理
+                    // 超过了边界，不需要处理
                     return
                 }
-                if contentOffset.x == 0 && selectedIndex == 0 && lastContentOffset.x == 0 {
-                    //滚动到了最左边，且已经选中了第一个，且之前的contentOffset.x为0
+                if contentOffset.x == 0, selectedIndex == 0, lastContentOffset.x == 0 {
+                    // 滚动到了最左边，且已经选中了第一个，且之前的contentOffset.x为0
                     return
                 }
                 let maxContentOffsetX = contentScrollView!.contentSize.width - contentScrollView!.bounds.size.width
-                if contentOffset.x == maxContentOffsetX && selectedIndex == itemDataSource.count - 1 && lastContentOffset.x == maxContentOffsetX {
-                    //滚动到了最右边，且已经选中了最后一个，且之前的contentOffset.x为maxContentOffsetX
+                if contentOffset.x == maxContentOffsetX, selectedIndex == itemDataSource.count - 1, lastContentOffset.x == maxContentOffsetX {
+                    // 滚动到了最右边，且已经选中了最后一个，且之前的contentOffset.x为maxContentOffsetX
                     return
                 }
 
@@ -468,13 +474,13 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
                                                                            percent: remainderProgress)
 
                 if remainderProgress == 0 {
-                    //滑动翻页，需要更新选中状态
-                    //滑动一小段距离，然后放开回到原位，contentOffset同样的值会回调多次。例如在index为1的情况，滑动放开回到原位，contentOffset会多次回调CGPoint(width, 0)
+                    // 滑动翻页，需要更新选中状态
+                    // 滑动一小段距离，然后放开回到原位，contentOffset同样的值会回调多次。例如在index为1的情况，滑动放开回到原位，contentOffset会多次回调CGPoint(width, 0)
                     if !(lastContentOffset.x == contentOffset.x && selectedIndex == baseIndex) {
                         scrollSelectItemAt(index: baseIndex)
                     }
-                }else {
-                    //快速滑动翻页，当remainderRatio没有变成0，但是已经翻页了，需要通过下面的判断，触发选中
+                } else {
+                    // 快速滑动翻页，当remainderRatio没有变成0，但是已经翻页了，需要通过下面的判断，触发选中
                     if abs(progress - CGFloat(selectedIndex)) > 1 {
                         var targetIndex = baseIndex
                         if progress < CGFloat(selectedIndex) {
@@ -484,7 +490,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
                     }
                     if selectedIndex == baseIndex {
                         scrollingTargetIndex = baseIndex + 1
-                    }else {
+                    } else {
                         scrollingTargetIndex = baseIndex
                     }
 
@@ -516,7 +522,8 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         }
     }
 
-    //MARK: - Private
+    // MARK: - Private
+
     private func clickSelectItemAt(index: Int) {
         guard delegate?.segmentedView(self, canClickItemAt: index) != false else {
             return
@@ -529,17 +536,17 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
     }
 
     private func selectItemAt(index: Int, selectedType: JXSegmentedViewItemSelectedType) {
-        guard index >= 0 && index < itemDataSource.count else {
+        guard index >= 0, index < itemDataSource.count else {
             return
         }
 
         if index == selectedIndex {
             if selectedType == .code {
                 listContainer?.didClickSelectedItem(at: index)
-            }else if selectedType == .click {
+            } else if selectedType == .click {
                 delegate?.segmentedView(self, didClickSelectedItemAt: index)
                 listContainer?.didClickSelectedItem(at: index)
-            }else if selectedType == .scroll {
+            } else if selectedType == .scroll {
                 delegate?.segmentedView(self, didScrollSelectedItemAt: index)
             }
             delegate?.segmentedView(self, didSelectedItemAt: index)
@@ -557,7 +564,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         let willSelectedCell = collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? JXSegmentedBaseCell
         willSelectedCell?.reloadData(itemModel: willSelectedItemModel, selectedType: selectedType)
 
-        if scrollingTargetIndex != -1 && scrollingTargetIndex != index {
+        if scrollingTargetIndex != -1, scrollingTargetIndex != index, scrollingTargetIndex < itemDataSource.count {
             let scrollingTargetItemModel = itemDataSource[scrollingTargetIndex]
             scrollingTargetItemModel.isSelected = false
             dataSource?.refreshItemModel(self, currentSelectedItemModel: scrollingTargetItemModel, willSelectedItemModel: willSelectedItemModel, selectedType: selectedType)
@@ -567,21 +574,21 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
 
         if dataSource?.isItemWidthZoomEnabled == true {
             if selectedType == .click || selectedType == .code {
-                //延时为了解决cellwidth变化，点击最后几个cell，scrollToItem会出现位置偏移bu。需要等cellWidth动画渐变结束后再滚动到index的cell位置。
-                let selectedAnimationDurationInMilliseconds = Int((dataSource?.selectedAnimationDuration ?? 0)*1000)
+                // 延时为了解决cellwidth变化，点击最后几个cell，scrollToItem会出现位置偏移bu。需要等cellWidth动画渐变结束后再滚动到index的cell位置。
+                let selectedAnimationDurationInMilliseconds = Int((dataSource?.selectedAnimationDuration ?? 0) * 1000)
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + DispatchTimeInterval.milliseconds(selectedAnimationDurationInMilliseconds)) {
                     self.collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .centeredHorizontally, animated: true)
                 }
-            }else if selectedType == .scroll {
-                //滚动选中的直接处理
+            } else if selectedType == .scroll {
+                // 滚动选中的直接处理
                 collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .centeredHorizontally, animated: true)
             }
-        }else {
+        } else {
             collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .centeredHorizontally, animated: true)
         }
 
-        if contentScrollView != nil && (selectedType == .click || selectedType == .code) {
-            contentScrollView!.setContentOffset(CGPoint(x: contentScrollView!.bounds.size.width*CGFloat(index), y: 0), animated: isContentScrollViewClickTransitionAnimationEnabled)
+        if contentScrollView != nil, selectedType == .click || selectedType == .code {
+            contentScrollView!.setContentOffset(CGPoint(x: contentScrollView!.bounds.size.width * CGFloat(index), y: 0), animated: isContentScrollViewClickTransitionAnimationEnabled)
         }
 
         selectedIndex = index
@@ -606,10 +613,10 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         scrollingTargetIndex = -1
         if selectedType == .code {
             listContainer?.didClickSelectedItem(at: index)
-        }else if selectedType == .click {
+        } else if selectedType == .click {
             delegate?.segmentedView(self, didClickSelectedItemAt: index)
             listContainer?.didClickSelectedItem(at: index)
-        }else if selectedType == .scroll {
+        } else if selectedType == .scroll {
             delegate?.segmentedView(self, didScrollSelectedItemAt: index)
         }
         delegate?.segmentedView(self, didSelectedItemAt: index)
@@ -624,13 +631,13 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
             let itemModel = itemDataSource[i]
             var itemWidth: CGFloat = 0
             if itemModel.isTransitionAnimating && itemModel.isItemWidthZoomEnabled {
-                //正在进行动画的时候，itemWidthCurrentZoomScale是随着动画渐变的，而没有立即更新到目标值
+                // 正在进行动画的时候，itemWidthCurrentZoomScale是随着动画渐变的，而没有立即更新到目标值
                 if itemModel.isSelected {
                     itemWidth = (dataSource?.segmentedView(self, widthForItemAt: itemModel.index) ?? 0) * itemModel.itemWidthSelectedZoomScale
-                }else {
+                } else {
                     itemWidth = (dataSource?.segmentedView(self, widthForItemAt: itemModel.index) ?? 0) * itemModel.itemWidthNormalZoomScale
                 }
-            }else {
+            } else {
                 itemWidth = itemModel.itemWidth
             }
             x += itemWidth + innerItemSpacing
@@ -639,7 +646,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         let selectedItemModel = itemDataSource[index]
         if selectedItemModel.isTransitionAnimating && selectedItemModel.isItemWidthZoomEnabled {
             width = (dataSource?.segmentedView(self, widthForItemAt: selectedItemModel.index) ?? 0) * selectedItemModel.itemWidthSelectedZoomScale
-        }else {
+        } else {
             width = selectedItemModel.itemWidth
         }
         return CGRect(x: x, y: 0, width: width, height: bounds.size.height)
@@ -658,7 +665,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
         let selectedItemModel = itemDataSource[index]
         if selectedItemModel.isItemWidthZoomEnabled {
             width = (dataSource?.segmentedView(self, widthForItemAt: selectedItemModel.index) ?? 0) * selectedItemModel.itemWidthSelectedZoomScale
-        }else {
+        } else {
             width = selectedItemModel.itemWidth
         }
         return CGRect(x: x, y: 0, width: width, height: bounds.size.height)
@@ -667,7 +674,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
     private func getContentEdgeInsetLeft() -> CGFloat {
         if contentEdgeInsetLeft == JXSegmentedViewAutomaticDimension {
             return innerItemSpacing
-        }else {
+        } else {
             return contentEdgeInsetLeft
         }
     }
@@ -675,7 +682,7 @@ open class JXSegmentedView: UIView, JXSegmentedViewRTLCompatible {
     private func getContentEdgeInsetRight() -> CGFloat {
         if contentEdgeInsetRight == JXSegmentedViewAutomaticDimension {
             return innerItemSpacing
-        }else {
+        } else {
             return contentEdgeInsetRight
         }
     }
@@ -694,7 +701,7 @@ extension JXSegmentedView: UICollectionViewDataSource {
         if let cell = dataSource?.segmentedView(self, cellForItemAt: indexPath.item) {
             cell.reloadData(itemModel: itemDataSource[indexPath.item], selectedType: .unknown)
             return cell
-        }else {
+        } else {
             return collectionView.dequeueReusableCell(withReuseIdentifier: "JXSegmentedViewInnerEmptyCell", for: indexPath)
         }
     }
@@ -710,7 +717,7 @@ extension JXSegmentedView: UICollectionViewDelegate {
             }
         }
         if !isTransitionAnimating {
-            //当前没有正在过渡的item，才允许点击选中
+            // 当前没有正在过渡的item，才允许点击选中
             clickSelectItemAt(index: indexPath.item)
         }
     }
@@ -728,6 +735,7 @@ extension JXSegmentedView: UICollectionViewDelegateFlowLayout {
             return .zero
         }
     }
+
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return innerItemSpacing
     }
